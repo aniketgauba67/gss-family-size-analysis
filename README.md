@@ -1,127 +1,336 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/6jJdjMJC)
-# Tabular Data Project: Survey Data Walkthrough 
+# Decoding Family Size Trends with GSS Data
 
-## Assignment Summary 
+## Overview
 
-For this project, students will use Python code (specifically Pandas) to work with one or more real-world, tabular datasets and communicate the insights they have gained from working closely with their selected data. Specifically, teams of 3-4 students will work with one or more prominent surveys that were conducted on national samples over periods of many years. Each team will create a curated subset around a focal area and will create a data guide (`.ipynb`, `.html`) for the subset. Students will be evaluated based on the quality of their technical implementations; their research and writing; and their success building on and effectively synthesizing multiple aspects of the tabular data unit.
+Decoding Family Size Trends with GSS Data is a reproducible exploratory data analysis project built around the General Social Survey (GSS). The project studies how family size, represented by respondents' reported number of children, varies across time and across social, demographic, political, economic, religious, and attitudinal variables.
 
-## Assignment Purpose
+The repository is designed for readers who want to understand a curated slice of a large public survey dataset without first navigating the full GSS release. It combines a smaller analysis-ready CSV subset, GSS metadata files, and Jupyter notebooks that document the data selection, cleaning, feature engineering, and visual exploration workflow.
 
-This assignment asks students to fulfill the following learning goals:
+At a high level, the workflow is:
 
-1. Demonstrate the ability to load and work with one or more real-world, tabular datasets
-2. Use tidy data structures and the split-apply-combine strategies in Python (using Pandas) to perform effective manipulations of your data, and support such code, where appropriate, with idiomatic Python
-3. Move beyond a "recipe following" mentality that comes with first learning a method in order to synthesize what we have learned so far
-4. Effectively communicate what we have learned using code, visuals, and text, culiminating with a polished `.html` report document
-5. Use collaboration and version control to generate and document reproducible code
+1. Select variables from the larger GSS source files.
+2. Save a curated subset with variables related to family size and respondent characteristics.
+3. Load the subset and supporting metadata into Pandas.
+4. Clean categorical survey codes into readable analytical categories.
+5. Create derived variables such as generation, age bins, happiness categories, and a summarized abortion-opinion variable.
+6. Use grouped aggregation and visualization to explore relationships between number of children and survey variables.
 
-These learning goals are crucial to data analytics and computer science curriculum because tabular data is __the most common data format__ you are likely to encounter in either field. 
+## Features
 
-When working with other formats such as relational, hierarchical, and graph data, it is __typical to convert__ such data into a tabular format in order to perform common tasks like creating results pages, visualizing data, and conducting statistical analysis or machine learning. 
+- Curated GSS subset containing 3,600 respondent rows across 34 survey years from 1972 through 2022.
+- Analysis notebook focused on family size trends from 1972 through 2021, excluding incomplete 2022 data in the main analysis.
+- Variable selection covering year, age, religion, political party identification, income, region, race, marital happiness, abortion-attitude questions, and number of children.
+- Metadata support through a GSS data dictionary and variable-year coverage file.
+- Pandas-based data loading, filtering, grouping, aggregation, categorical mapping, and feature engineering.
+- Helper functions for reusable grouped averages and derived survey-response classifications.
+- Derived `abgen` variable summarizing abortion-opinion responses as `Always legal`, `Sometimes legal`, `Never legal`, or `Unknown`.
+- Generational analysis using approximate birth year and Pandas binning.
+- Visual analysis with Seaborn and Matplotlib, including line plots, regression scatter plots, bar charts, facet grids, and boxplots.
+- Separate subset-building notebook that documents how the local subset CSV files were generated from larger GSS source files.
 
-As we have seen, real-world data is often poorly structured, disorderly, incomplete, or otherwise difficult to work with. Completing this assignment is a chance to hone your data wrangling competency and demonstrate what you have learned so far in this class.  
+## Architecture
 
-## Assignment Files
+This is a notebook-driven data analysis repository. It does not contain a web frontend, backend server, database schema, API layer, authentication system, cloud deployment config, CI/CD pipeline, or AI/ML model integration.
 
-To get started on this assignment, your team will visit the Github Classroom link and follow the assignment checkout process for team-based assignments. The Github Classroom link will be shared on Canvas. The assignment files will include data (or instructions on how to access data), metadata files, and a Jupyter Notebook assignment template  (`submission.ipynb`).
+| Layer | Implementation | Responsibility |
+| --- | --- | --- |
+| Data source | External GSS CSV files referenced by the assignment documentation | Original survey data used to create the local subset |
+| Data subset | `data/subset_full.csv`, `data/subset_sample.csv` | Analysis-ready 16-variable respondent subset |
+| Metadata | `meta/gss_data_dictionary.csv`, `meta/gss_data_years_per_var.csv` | Variable labels, value labels, missing-value codes, and year coverage context |
+| Subset generation | `Subset_Maker.ipynb` | Selects the analysis variables from larger local GSS files and writes subset CSVs |
+| Analysis workflow | `submission.ipynb` | Loads data, cleans variables, engineers derived fields, aggregates, visualizes, and documents findings |
+| Documentation | `README.md`, `data/README.md`, `Project_Planing` | Repository overview, data access note, and project planning notes |
 
-For projects, data (or data access instructions) will typically be located in the `data` folder of the Github Classroom repo. If there are supplemental resources for the datasets, such files will be located in the `meta` folder of the repo. Lastly, the Jupyter Notebook template (`submission.ipynb`) will typically have a mix of markdown and code blocks for you to get started. It is assumed that your team will modify this template as you go, including customized text for your title, subheadings, etc.
+### Workflow Diagram
 
-For this assignment, there are three datasets for your team to choose from. These datasets should look familiar, as you encountered them when completing your tabular data worksheets. For this assignment, we will dig deeper into how the the surveys were conducted, and what they can tell us about American life. 
-
-__The General Social Survey (GSS)__ is a survey of adults in the United States that has been conducted anually since 1972. (Our dataset has responses from 1972 to 2022.) The GSS contains "a standard core of demographic, behavioral, and attitudinal questions" from year to year, and different questions pertaining to "topics of special interest" are included each year ("About").
-
-The survey is cross-sectional rather than longitudinal, which means that the respondents for each year are always different. In a longitudinal study, in contrast, one group of respondents is selected and tracked for multiple years. The data can still help us understand social trends in the United States over time, but the survey's cross-sectional nature is an important limitation. 
-
-__Note:__ The CSV files for this assignment are too large for the Github repository (>50 MB). You can access them via Google Drive by clicking this link: https://drive.google.com/drive/folders/11RalfoACwBjcjD8ETHKZqcAbayZC0MvR?usp=sharing
-
-## Assignment Details
-
-The core task of this assignment is to choose a focal area, create a curated subset of data on this topic, and create a data guide for the subset. This guide must include a specific set of technical components, but how and where you implement them is up to you.
-
-__Topic or Focal Area:__
-
-We have already seen several example topics in our worksheet assignments. Focal areas such as civic engagement, participation in religious life, and trust in institutions are all discussed in Robert D. Putnam's book _Bowling Alone_. Putnam draws on data from the GSS and triangulates his findings with the DDB Needham Life Style Surveys (DDB) and the Roper Social and Political Trends Data (RSP), along with other sources. The GSS includes various demographic variables that could be used for cross-tabulation. For example, have differences in male and female religiosity changed over time? 
-
-To determine your topic, you can draw from Putnam and other scholars, read more about each survey online, and/or use your data munging skills in Python to find variables with multiple years of coverage, as we did in classwork and homework assignments.
-
-__Your Data Subset:__
-
-Your data subset should be based on your team's chosen topic, as well as the source data's coverage of that topic. 
-
-Your subset should include a set of specific, inter-releated variables, as well as a clear date range. Your subset should be saved as a `.csv` file and included in your Github repository, and everything you include should be structed according to tidy data principles.
-
-__Data Guide Submission:__ 
-
-The data guide submission will mix Python code and markdown text to "walk through" your team's data subset, drawing on supplementary materials and outside resources. You will create it as a Jupyter Notebook file and submit it in both `.ipynb` and `.html` formats. Submissions should adhere to the following formatting guidelines: 
-
-| Component               | Description                                                                                                                                                                                                 |
-|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Title                   | Brief and informative, gives some idea of your topic area.                                                                                                                                                  |
-| Introduction            | Include core background information and ethical considerations relevant to initial data collection and contemporary use of the data.                                                                        |
-| Data Subset Description | Discuss the rationale for your subset and any strategies you used to decide on the topic area. Include a table of each selected variable, its data type, and examples of possible values for that variable. |
-| Data Exploration        | Use a blend of descriptive statistics and data visualizations to explore the subset. Include code blocks. Discuss potential areas for deeper analysis based on the data.                                    |
-| Uses of Python          | Take a step back and analyze your own use of code. Provide some rationale for choices you’ve made. Considerations may include performance, human readability, code dependencies, and reproducibility.       |
-| References              | List all works cited in the data guide. Use proper APA format.
-
-__Technical Components:__
-
-Somewhere in your submission, your team is required to:
-
-- use pandas to read data as DataFrame
-- use at least one helper function of your own design, defined in Jupyter Notebook or imported from a local Python script (.py file)
-- use pandas `groupby` with an aggregation method (`agg`, `count`, `first`, `max`, `sum`, `mean`, etc.)
-- use pandas' `apply` method at least once to transform or create a variable  
-- use pandas' `.loc`, `iloc`, or `.at` to filter data
-- use three of the following utility methods from pandas: `sort_values`, `reset_index`, `set_index`, `fillna`, `dropna`, `astype`,  `rename`, `drop`, `head`, `tail`, `describe`
-- use pandas to write data subset as `.csv` file or files
-- use pandas' `cut` or `qcut` to create data bins 
-- display inline at least one scatter plot, one line plot, one sequence of boxplots (using matplotlib, seaborn, etc.)
-
-## Assessment Criteria 
-
-Submissions will be evaluated on technical content; research and writing; and how well the submission comes together as a whole. The following descriptive rubric will be used when grading.
-
-### Technical Content
-- data files imported properly 
-- attention is paid to the complexities of the source data (missing data, coded values, sample weighting, etc.)
-- tabular data structures are used correctly, and tidy data standards are followed
-- pandas operations and helper functions are used properly; submission uses all required code components correctly
-- data visualizations are properly coded, sufficiently polished, and used effectively
-
-### Research and Writing
-- sufficient attention has been paid to proofreading
-- external sources are used to enhance the submission, and sources are properly cited (APA style)
-- the project is well organized, flows logically, and follows the all formatting guidelines
-- the submission's use of language is appropriate for a well-informed, less technical reader
-
-### Big Picture 
-- all materials are turned in on time and in the right place
-- assignment directions are followed, and all required components are included in the submission
-- proper documentation and version control methods are used to facilitate collaboration and reproducibility
-- the submission provides sufficient details or points to supplementary materials that make the research reproducible (e.g. detailed footnotes, appendices, links to GitHub, etc.)
-- submitted materials build on multiple takeaways from the tabular data unit and synthesize them effectively
-
-## Assignment Details
-
-__Accessing assignment files:__ Via Github Classroom (linked on Canvas site)
-
-__Teams:__ Assigned by instructor
-
-__Required files:__ Jupyter Notebook (`.ipynb`) data guide, `.html` version (using "Download as" feature), any imported `.py` files, and `.csv` subset file or files.
-
-__How to turn it in__: Upload `.html` on Canvas; upload or push `.ipynb` file, `.csv` files, all other project materials on Github
-
-__Deadline:__ By the start of class on Monday, October 21, 2024.
-
-## References 
-
-About the GSS. (Retrieved January 4, 2024). https://gss.norc.org/About-The-GSS
-
-Putnam, Robert. D. (2000). _Bowling Alone: The Collapse and Revival of American Community_. Simon and Schuster.
-
-Roper Social and Political Trends. (Retrieved January 4, 2024). https://ropercenter.cornell.edu/featured-collections/roper-social-and-political-trends
-
-```python
-
+```mermaid
+flowchart LR
+    A[Large GSS source CSVs] --> B[Subset_Maker.ipynb]
+    B --> C[data/subset_full.csv]
+    B --> D[data/subset_sample.csv]
+    E[meta/gss_data_dictionary.csv] --> F[submission.ipynb]
+    G[meta/gss_data_years_per_var.csv] --> F
+    C --> F
+    D --> F
+    H[data/gss_full_row_counts.csv] --> F
+    F --> I[Exploratory statistics and visualizations]
+    F --> J[Family-size insights by year, age, generation, income, region, race, marital happiness, religion, party ID, and abortion views]
 ```
+
+### APIs, Services, and Infrastructure
+
+No runtime APIs, background jobs, external services, database migrations, authentication providers, or deployment infrastructure are present in this repository. The project runs locally in a Jupyter environment and reads CSV files from the repository plus larger source files that are referenced externally.
+
+## Tech Stack
+
+### Languages
+
+- Python
+- Markdown
+- CSV
+- Jupyter Notebook JSON
+
+### Frontend
+
+- None. The project is presented through Jupyter notebooks rather than a frontend application.
+
+### Backend
+
+- None. There is no server-side application or API backend.
+
+### Database
+
+- None. Data is stored as CSV files and loaded directly with Pandas.
+
+### AI/ML
+
+- None. The repository performs exploratory data analysis and visualization, not machine learning or AI inference.
+
+### Cloud/DevOps
+
+- Git and GitHub repository structure
+- No Docker, Railway, Vercel, GitHub Actions, or other deployment configuration is present.
+
+### Testing
+
+- No automated test framework is present.
+- Validation is currently performed through notebook execution and visual/data inspection.
+
+### Tools
+
+- Jupyter Notebook
+- Pandas
+- NumPy
+- Seaborn
+- Matplotlib
+
+## Repository Structure
+
+```text
+.
+├── README.md
+├── LICENSE
+├── Project_Planing
+├── Subset_Maker.ipynb
+├── submission.ipynb
+├── data
+│   ├── README.md
+│   ├── gss_full_row_counts.csv
+│   ├── subset_full.csv
+│   └── subset_sample.csv
+└── meta
+    ├── gss_data_dictionary.csv
+    └── gss_data_years_per_var.csv
+```
+
+| Path | Purpose |
+| --- | --- |
+| `submission.ipynb` | Main analysis notebook and narrative data guide. |
+| `Subset_Maker.ipynb` | Notebook used to select project variables from larger local GSS CSV files and export subset CSVs. |
+| `data/subset_full.csv` | Curated GSS subset used in the main analysis. Contains 3,600 data rows and 16 selected variables, plus the CSV index column. |
+| `data/subset_sample.csv` | Sample subset with the same structure as the full subset. In the current repository it has the same row count as `subset_full.csv`. |
+| `data/gss_full_row_counts.csv` | Per-year row counts from the full GSS source data for 1972 through 2022. |
+| `data/README.md` | Notes where larger source CSV files can be accessed externally. |
+| `meta/gss_data_dictionary.csv` | GSS metadata including variable names, labels, value labels, column types, and missing-value codes. |
+| `meta/gss_data_years_per_var.csv` | Year-by-variable coverage matrix for the GSS data. |
+| `Project_Planing` | Planning notes, project requirements, variables, and team task assignments. |
+
+## Dataset
+
+The local subset includes these analysis variables:
+
+| Variable | Meaning |
+| --- | --- |
+| `year` | GSS survey year |
+| `age` | Respondent age |
+| `relig` | Respondent religious preference |
+| `partyid` | Political party identification |
+| `income` | Total family income code |
+| `region` | Region of interview |
+| `race` | Respondent race code |
+| `hapmar` | Happiness of marriage |
+| `abdefect` | Whether abortion should be legal when there is a strong chance of serious fetal defect |
+| `abnomore` | Whether abortion should be legal when respondent is married and wants no more children |
+| `abhlth` | Whether abortion should be legal when the woman's health is seriously endangered |
+| `abpoor` | Whether abortion should be legal when respondent has low income and cannot afford more children |
+| `abrape` | Whether abortion should be legal when pregnancy resulted from rape |
+| `absingle` | Whether abortion should be legal when respondent is not married |
+| `abany` | Whether abortion should be legal if the woman wants it for any reason |
+| `childs` | Number of children, with 8 representing 8 or more |
+
+The notebook also creates derived fields during analysis:
+
+- `approx_born`: approximate birth year, calculated as `year - age`.
+- `Generation`: generational cohort created with `pd.cut`.
+- `num_yes` and `num_no`: counts of affirmative and negative abortion-question responses.
+- `abgen`: summarized abortion-opinion category.
+- `income_range`: readable income category mapped from `income`.
+- `region_name`: readable region category mapped from `region`.
+- `happiness_category`: derived marital-happiness category.
+- `relig_name` and `party_name`: readable labels for religion and political party codes.
+
+## Setup Instructions
+
+### Prerequisites
+
+- Python 3.x
+- Jupyter Notebook or JupyterLab
+- Python packages used by the notebooks:
+  - `pandas`
+  - `numpy`
+  - `seaborn`
+  - `matplotlib`
+
+No `requirements.txt`, `pyproject.toml`, or environment file is currently committed, so dependencies need to be installed manually.
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd Tabular_Data_Viz
+```
+
+Create and activate a local virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the notebook dependencies:
+
+```bash
+pip install pandas numpy seaborn matplotlib jupyter
+```
+
+### Environment Variables
+
+No environment variables are required. The notebooks use local CSV paths and do not read from `.env` files or operating-system environment variables.
+
+### Data Setup
+
+The repository already includes the curated subset files used by `submission.ipynb`:
+
+- `data/subset_full.csv`
+- `data/subset_sample.csv`
+- `data/gss_full_row_counts.csv`
+- `meta/gss_data_dictionary.csv`
+- `meta/gss_data_years_per_var.csv`
+
+The original full GSS source CSV files are not committed because they are too large for this repository. `data/README.md` links to the external Google Drive location used by the original assignment.
+
+To regenerate the subset with `Subset_Maker.ipynb`, place the larger source files expected by that notebook in the repository root:
+
+- `gss_sample.csv`
+- `GSS_data.csv`
+
+Then run the notebook. It selects the project variables and writes:
+
+- `subset_sample.csv`
+- `subset_full.csv`
+
+If you want those regenerated files to match the current repository layout, move or write them under `data/`.
+
+### Local Development
+
+Start Jupyter:
+
+```bash
+jupyter notebook
+```
+
+Open `submission.ipynb` and run the cells from top to bottom.
+
+### Build Commands
+
+There is no application build step. The primary artifact is the executed notebook.
+
+Optional notebook export:
+
+```bash
+jupyter nbconvert --to html submission.ipynb
+```
+
+### Deployment
+
+No production deployment configuration is present. The project is intended to be reviewed as a local notebook/data-analysis portfolio project.
+
+## API and Workflow Documentation
+
+There are no API routes or service endpoints. The workflow is notebook-based:
+
+1. `submission.ipynb` loads the curated CSV subset and metadata with `pd.read_csv`.
+2. It removes 2022 from the primary analysis because the notebook notes that the year is incomplete.
+3. It computes year-level and age-level average number of children with `groupby(...).agg('mean')`.
+4. It creates approximate birth years and generational cohorts with `pd.cut`.
+5. It uses `.loc` filters to compare age and number of children in selected survey years.
+6. It summarizes abortion-attitude variables by counting yes/no answers across seven abortion-related survey questions.
+7. It maps income and region codes to readable labels and aggregates average family size by grouped categories.
+8. It examines race, marital happiness, religion, and political party identification with grouped means and visualizations.
+9. It presents narrative interpretation alongside the code and charts.
+
+## Testing
+
+No automated tests are included. The current validation approach is manual and notebook-driven:
+
+- Confirm CSV files load successfully.
+- Execute notebook cells in order.
+- Inspect transformed DataFrames with methods such as `head()` and `tail()`.
+- Validate grouped outputs and visualizations against the documented narrative.
+
+Recommended lightweight checks for future work include:
+
+- A smoke test that loads every CSV used by the notebook.
+- Schema checks for required subset columns.
+- A notebook execution check in CI.
+- A dependency lock file to make notebook execution reproducible.
+
+## Deployment
+
+No Railway, Vercel, Docker, GitHub Actions, or other deployment infrastructure exists in the repository.
+
+For portfolio review, the most useful presentation formats are:
+
+- The source notebook: `submission.ipynb`
+- An exported HTML report generated with `jupyter nbconvert`
+- The curated CSV subset under `data/`
+
+## Challenges and Engineering Decisions
+
+- The original GSS source files are too large for the repository, so the project keeps a compact, analysis-focused subset in version control.
+- GSS variables use numeric survey codes, requiring careful mapping to readable categories before communication.
+- Some variables are not available in every year, so the analysis relies on metadata and explicitly excludes incomplete 2022 data in the main notebook.
+- Sensitive variables, especially abortion attitudes and marital happiness, are summarized cautiously and interpreted as exploratory relationships rather than causal claims.
+- The project keeps the analysis transparent by preserving notebook code, transformations, plots, and explanatory text together.
+- The `abgen` feature reduces multiple related abortion-attitude questions into a single interpretable category while retaining an `Unknown` category for respondents without usable answers.
+
+## Future Improvements
+
+- Add `requirements.txt` or `pyproject.toml` with pinned dependency versions.
+- Add a small Python script or Makefile command to regenerate subsets into the `data/` directory reproducibly.
+- Standardize the Seaborn import alias throughout the notebook.
+- Export and commit an HTML version of the final notebook for easier non-technical review.
+- Add automated checks that validate CSV schema, row counts, and notebook execution.
+- Add clearer methodology notes about sample weighting and GSS missing-value conventions.
+- Create publication-quality chart exports in an `assets/` or `reports/` folder.
+- Separate reusable transformation logic into a Python module if the analysis grows beyond a single notebook.
+
+## Screenshots and Demo
+
+No standalone screenshot or demo asset files are currently committed.
+
+Recommended demo materials:
+
+- Export `submission.ipynb` to HTML.
+- Add selected chart images from the notebook to an `assets/` folder.
+- Link a rendered notebook or HTML report from this section.
+
+## Author
+
+Aniket Gauba
+
+## License
+
+This project is licensed under the MIT License. See `LICENSE` for details.
